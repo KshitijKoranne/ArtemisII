@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import VisitorCounter from './VisitorCounter';
 
-const LAUNCH_TIME = new Date('2026-04-01T22:35:00Z').getTime();
+const LAUNCH_TIME = 1775082900000; // 2026-04-01T22:35:00Z
 
 function getMET(now: number) {
   const e = Math.max(0, Math.floor((now - LAUNCH_TIME) / 1000));
@@ -15,25 +15,25 @@ function getMET(now: number) {
 }
 
 export default function Header() {
-  const [met, setMet] = useState(getMET(Date.now()));
+  const [mounted, setMounted] = useState(false);
+  const [met, setMet] = useState({ d:'--', h:'--', m:'--', s:'--' });
 
   useEffect(() => {
-    const id = setInterval(() => setMet(getMET(Date.now())), 1000);
+    setMounted(true);
+    const tick = () => setMet(getMET(Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  const S: React.CSSProperties = {
-    position: 'sticky',
-    top: 0,
-    zIndex: 50,
-    borderBottom: '1px solid rgba(45,125,210,0.2)',
-    background: 'rgba(5,12,26,0.96)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-  };
-
   return (
-    <header style={S}>
+    <header style={{
+      position:'sticky', top:0, zIndex:50,
+      borderBottom:'1px solid rgba(45,125,210,0.2)',
+      background:'rgba(5,12,26,0.96)',
+      backdropFilter:'blur(20px)',
+      WebkitBackdropFilter:'blur(20px)',
+    }}>
       <div style={{ maxWidth:1100, margin:'0 auto', padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
 
         {/* Brand */}
@@ -51,13 +51,13 @@ export default function Header() {
           </div>
         </div>
 
-        {/* MET Clock — hidden on mobile */}
+        {/* MET Clock */}
         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
           <span className="eyebrow" style={{ marginRight:4, fontSize:9 }}>MET</span>
-          {[{v:met.d,u:'d'},{v:met.h,u:'h'},{v:met.m,u:'m'},{v:met.s,u:'s'}].map((x,i) => (
+          {[{v: mounted ? met.d : '--', u:'d'},{v: mounted ? met.h : '--', u:'h'},{v: mounted ? met.m : '--', u:'m'},{v: mounted ? met.s : '--', u:'s'}].map((x,i) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:4 }}>
               <div className="card" style={{ padding:'6px 10px', textAlign:'center', minWidth:44 }}>
-                <div className="f-mono" style={{ fontWeight:700, fontSize:16, color:'var(--accent-hi)', lineHeight:1 }}>{x.v}</div>
+                <div className="f-mono" style={{ fontWeight:700, fontSize:16, color:'var(--accent-hi)', lineHeight:1 }} suppressHydrationWarning>{x.v}</div>
                 <div className="eyebrow" style={{ marginTop:2, fontSize:8 }}>{x.u}</div>
               </div>
               {i < 3 && <span className="f-mono" style={{ fontSize:14, color:'rgba(91,163,245,0.3)', marginBottom:8 }}>:</span>}
@@ -70,7 +70,6 @@ export default function Header() {
           <VisitorCounter />
           <span className="badge badge-blue">Orion · Integrity</span>
         </div>
-
       </div>
     </header>
   );

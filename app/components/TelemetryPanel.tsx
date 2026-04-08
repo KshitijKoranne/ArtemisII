@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 // Hardcoded timestamps as ms to avoid SSR/hydration mismatch
-const LAUNCH_MS = 1743547200000; // 2026-04-01T22:35:00Z
+const LAUNCH_MS = 1775082900000; // 2026-04-01T22:35:00Z
 const MAX_D = 406700;
 
 function physics(now: number) {

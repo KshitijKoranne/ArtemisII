@@ -1,22 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const LAUNCH_MS = 1743547200000; // 2026-04-01T22:35:00Z
+const LAUNCH_MS = 1775082900000; // 2026-04-01T22:35:00Z
 
 const EVENTS = [
-  { id:'launch',   label:'Launch',               detail:'SLS lifts off from LC-39B, Kennedy Space Center',          t:1743547200000, type:'milestone' },
-  { id:'tli',      label:'Trans-Lunar Injection', detail:'ICPS fires — Orion escapes Earth orbit toward the Moon',   t:1743558000000, type:'maneuver'  },
-  { id:'prox',     label:'Proximity Operations',  detail:'Manual spacecraft handling + proximity ops flight test',   t:1743638400000, type:'science'   },
-  { id:'record',   label:'Distance Record ★',     detail:'252,760 mi from Earth — farthest humans have ever traveled', t:1744030560000, type:'milestone' },
-  { id:'approach', label:'Closest Moon Approach', detail:'Orion passes ~4,067 mi from lunar surface at 60,863 mph',  t:1744057560000, type:'milestone' },
-  { id:'eclipse',  label:'Solar Eclipse',         detail:'Moon eclipses Sun — crew observes solar corona ~54 min',   t:1744058100000, type:'science'   },
-  { id:'blackout', label:'Comms Blackout',        detail:'~40 min behind the Moon — Deep Space Network loses signal', t:1744059600000, type:'comms'     },
-  { id:'return',   label:'Begin Return to Earth', detail:'Orion completes flyby and heads home',                     t:1744062000000, type:'milestone' },
-  { id:'mcc1',     label:'Return Burn MCC-R1',    detail:'First return trajectory correction burn',                  t:1744153380000, type:'maneuver'  },
-  { id:'mcc2',     label:'Return Burn MCC-R2',    detail:'Second return trajectory correction burn',                 t:1744181600000, type:'maneuver'  },
-  { id:'mcc3',     label:'Return Burn MCC-R3',    detail:'Final return trajectory correction burn',                  t:1744290000000, type:'maneuver'  },
-  { id:'reentry',  label:'Reentry',               detail:'Skip reentry at 25,000 mph — peak heat shield loads',     t:1744317000000, type:'milestone' },
-  { id:'splash',   label:'Splashdown',            detail:'Orion splashes down off San Diego · USS John P. Murtha recovery', t:1744322820000, type:'milestone' },
+  { id:'launch',   label:'Launch',               detail:'SLS lifts off from LC-39B, Kennedy Space Center',          t:1775082900000, type:'milestone' },
+  { id:'tli',      label:'Trans-Lunar Injection', detail:'ICPS fires — Orion escapes Earth orbit toward the Moon',   t:1775093700000, type:'maneuver'  },
+  { id:'prox',     label:'Proximity Operations',  detail:'Manual spacecraft handling + proximity ops flight test',   t:1775174400000, type:'science'   },
+  { id:'record',   label:'Distance Record ★',     detail:'252,760 mi from Earth — farthest humans have ever traveled', t:1775483760000, type:'milestone' },
+  { id:'approach', label:'Closest Moon Approach', detail:'Orion passes ~4,067 mi from lunar surface at 60,863 mph',  t:1775507160000, type:'milestone' },
+  { id:'eclipse',  label:'Solar Eclipse',         detail:'Moon eclipses Sun — crew observes solar corona ~54 min',   t:1775507700000, type:'science'   },
+  { id:'blackout', label:'Comms Blackout',        detail:'~40 min behind the Moon — Deep Space Network loses signal', t:1775509200000, type:'comms'     },
+  { id:'return',   label:'Begin Return to Earth', detail:'Orion completes flyby and heads home',                     t:1775511300000, type:'milestone' },
+  { id:'mcc1',     label:'Return Burn MCC-R1',    detail:'First return trajectory correction burn',                  t:1775606580000, type:'maneuver'  },
+  { id:'mcc2',     label:'Return Burn MCC-R2',    detail:'Second return trajectory correction burn',                 t:1775714400000, type:'maneuver'  },
+  { id:'mcc3',     label:'Return Burn MCC-R3',    detail:'Final return trajectory correction burn',                  t:1775829600000, type:'maneuver'  },
+  { id:'reentry',  label:'Reentry',               detail:'Skip reentry at 25,000 mph — peak heat shield loads',     t:1775849400000, type:'milestone' },
+  { id:'splash',   label:'Splashdown',            detail:'Orion splashes down off San Diego · USS John P. Murtha recovery', t:1775851620000, type:'milestone' },
 ];
 
 const TYPE_COLOR: Record<string,string> = {
@@ -44,22 +44,25 @@ const GLOW_CSS = `
 `;
 
 export default function Timeline() {
-  const [now,  setNow]  = useState(Date.now());
+  const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState(0);
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    // Inject glow CSS once
     if (!document.getElementById('tl-glow-css')) {
       const s = document.createElement('style');
       s.id = 'tl-glow-css';
       s.textContent = GLOW_CSS;
       document.head.appendChild(s);
     }
+    setMounted(true);
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 10000);
     return () => clearInterval(id);
   }, []);
 
-  const doneCount = EVENTS.filter((_,i) => getStatus(i,now) === 'done').length;
+  const safeNow = mounted ? now : 0;
+  const doneCount = EVENTS.filter((_,i) => getStatus(i,safeNow) === 'done').length;
 
   // Reversed: current/upcoming at top, done at bottom
   const displayEvents = [...EVENTS].reverse();
@@ -97,7 +100,7 @@ export default function Timeline() {
 
             {displayEvents.map((ev) => {
               const origIdx = EVENTS.findIndex(e => e.id === ev.id);
-              const s       = getStatus(origIdx, now);
+              const s       = getStatus(origIdx, safeNow);
               const color   = TYPE_COLOR[ev.type];
               const isActive = s === 'active';
 
