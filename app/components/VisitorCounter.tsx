@@ -9,8 +9,8 @@ function getVid(): string {
 }
 
 export default function VisitorCounter() {
-  const [count, setCount]   = useState<number|null>(null);
-  const [flash, setFlash]   = useState(false);
+  const [count, setCount] = useState<number|null>(null);
+  const [flash, setFlash] = useState(false);
   const prev = useRef<number|null>(null);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function VisitorCounter() {
         const r = await fetch('/api/visitors', { method:'POST', headers:{'x-visitor-id': getVid()}, cache:'no-store' });
         if (!r.ok) return;
         const { count: c } = await r.json();
-        if (prev.current !== null && c !== prev.current) { setFlash(true); setTimeout(() => setFlash(false), 350); }
+        if (prev.current !== null && c !== prev.current) { setFlash(true); setTimeout(()=>setFlash(false),350); }
         prev.current = c; setCount(c);
       } catch {}
     }
@@ -31,14 +31,15 @@ export default function VisitorCounter() {
   if (!count) return null;
 
   return (
-    <div className="badge badge-green" style={{ gap:6 }} title="Viewers right now">
+    <span className="badge badge-green" title="Viewers right now">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span className={flash ? 'num-change' : ''} style={{ fontFamily:'JetBrains Mono', fontSize:11, fontWeight:600 }}>
+      <span className={flash ? 'num-change' : ''} style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, fontWeight:600 }}>
         {count.toLocaleString()}
       </span>
       <span style={{ opacity:0.7 }}>live</span>
-    </div>
+    </span>
   );
 }
