@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-const LAUNCH = new Date('2026-04-01T22:35:00Z').getTime();
-const SPLASH = new Date('2026-04-10T20:07:00Z').getTime();
-const MAX_D  = 406700;
+// Hardcoded timestamps as ms to avoid SSR/hydration mismatch
+const LAUNCH_MS = 1743547200000; // 2026-04-01T22:35:00Z
+const MAX_D = 406700;
 
 function physics(now: number) {
-  const h = (now - LAUNCH) / 3600000;
+  const h = (now - LAUNCH_MS) / 3_600_000;
   let dist = 0, spd = 0;
-  if      (h < 3)   { dist = 400 + 3200*(h/3);               spd = 28000 - 20000*(h/3); }
+  if      (h < 3)   { dist = 400 + 3200*(h/3);                      spd = 28000 - 20000*(h/3); }
   else if (h < 120) { const t=(h-3)/117; dist=3600+(MAX_D-3600)*Math.pow(t,0.82); spd=38000*Math.pow(1-t*0.72,1.1)+3200; }
-  else if (h < 123) { dist = MAX_D;                           spd = 3800; }
+  else if (h < 123) { dist = MAX_D;                                  spd = 3800; }
   else if (h < 215) { const t=(h-123)/92; dist=MAX_D*Math.pow(1-t,1.05); spd=3800+(38000-3800)*Math.pow(t,1.9); }
   else              { const t=(h-215)/2.5; dist=Math.max(0,50000*(1-t)); spd=Math.max(0,38000*(1-t)); }
   return {
@@ -28,29 +28,36 @@ export default function TelemetryPanel() {
   const [src,  setSrc]  = useState<'live'|'computed'|'loading'>('loading');
 
   useEffect(() => {
-    async function load() {
+    // Immediately show computed data — no waiting for API
+    setData(physics(Date.now()));
+    setSrc('computed');
+
+    // Then try API in background
+    async function tryLive() {
       try {
         const r = await fetch('/api/orbit', { cache:'no-store' });
         if (!r.ok) throw new Error();
         const j = await r.json();
         if (j.error) throw new Error();
-        setData({
+        const d = {
           dist: Math.round(j.earth_distance_km || j.earthDistance || j.distance_from_earth || 0),
           moon: Math.round(j.moon_distance_km  || j.moonDistance  || j.distance_from_moon  || 0),
           spd:  Math.round(j.speed_kmh || j.velocity_kmh || j.speed || 0),
-          g:    j.g_force || j.gforce || 0,
-        });
-        setSrc('live');
-      } catch {
-        setData(physics(Date.now()));
-        setSrc('computed');
-      }
+          g:    parseFloat(j.g_force || j.gforce || 0),
+        };
+        // Only use if values look real (not 0)
+        if (d.dist > 1000) { setData(d); setSrc('live'); }
+      } catch { /* stay on computed */ }
     }
-    load();
-    const id = setInterval(load, 30000);
+    tryLive();
+    const id = setInterval(() => {
+      setData(physics(Date.now()));
+      tryLive();
+    }, 30000);
     return () => clearInterval(id);
   }, []);
 
+  // Fast tick for computed mode
   useEffect(() => {
     if (src !== 'computed') return;
     const id = setInterval(() => setData(physics(Date.now())), 2000);
@@ -86,10 +93,9 @@ export default function TelemetryPanel() {
             <div className="eyebrow" style={{ fontSize:8, color:'var(--text-dim)' }}>{t.sub}</div>
           </div>
         )) : Array.from({length:4}).map((_,i) => (
-          <div key={i} className="card" style={{ padding:'14px 16px' }}>
+          <div key={i} className="card" style={{ padding:'14px 16px', opacity:0.5 }}>
             <div style={{ height:10, width:80, borderRadius:4, background:'rgba(45,125,210,0.1)', marginBottom:12 }} />
-            <div style={{ height:28, width:100, borderRadius:4, background:'rgba(45,125,210,0.08)', marginBottom:8 }} />
-            <div style={{ height:8,  width:60,  borderRadius:4, background:'rgba(45,125,210,0.06)' }} />
+            <div style={{ height:28, width:100, borderRadius:4, background:'rgba(45,125,210,0.08)' }} />
           </div>
         ))}
       </div>

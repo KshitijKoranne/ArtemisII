@@ -1,22 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const LAUNCH = new Date('2026-04-01T22:35:00Z').getTime();
+const LAUNCH_MS = 1743547200000; // 2026-04-01T22:35:00Z
 
 const EVENTS = [
-  { id:'launch',   label:'Launch',               detail:'SLS lifts off from LC-39B, Kennedy Space Center', t:new Date('2026-04-01T22:35:00Z'), type:'milestone' },
-  { id:'tli',      label:'Trans-Lunar Injection', detail:'ICPS fires — Orion escapes Earth orbit toward the Moon', t:new Date('2026-04-02T01:35:00Z'), type:'maneuver'  },
-  { id:'prox',     label:'Proximity Operations',  detail:'Manual spacecraft handling + proximity ops flight test', t:new Date('2026-04-03T00:00:00Z'), type:'science'   },
-  { id:'record',   label:'Distance Record ★',     detail:'252,760 mi from Earth — farthest humans have ever traveled', t:new Date('2026-04-06T13:56:00Z'), type:'milestone' },
-  { id:'approach', label:'Closest Moon Approach', detail:'Orion passes ~4,067 mi from lunar surface at 60,863 mph', t:new Date('2026-04-06T20:26:00Z'), type:'milestone' },
-  { id:'eclipse',  label:'Solar Eclipse',         detail:'Moon eclipses Sun — crew observes corona for ~54 min', t:new Date('2026-04-06T20:35:00Z'), type:'science'   },
-  { id:'blackout', label:'Comms Blackout',        detail:'~40 min behind the Moon, no signal from Deep Space Network', t:new Date('2026-04-06T21:00:00Z'), type:'comms'     },
-  { id:'return',   label:'Begin Return to Earth', detail:'Orion completes flyby and heads home', t:new Date('2026-04-06T21:35:00Z'), type:'milestone' },
-  { id:'mcc1',     label:'Return Burn MCC-R1',    detail:'First return trajectory correction burn', t:new Date('2026-04-08T00:03:00Z'), type:'maneuver'  },
-  { id:'mcc2',     label:'Return Burn MCC-R2',    detail:'Second return trajectory correction burn', t:new Date('2026-04-09T06:00:00Z'), type:'maneuver'  },
-  { id:'mcc3',     label:'Return Burn MCC-R3',    detail:'Final return trajectory correction burn', t:new Date('2026-04-10T14:00:00Z'), type:'maneuver'  },
-  { id:'reentry',  label:'Reentry',               detail:'Skip reentry at 25,000 mph — peak heat shield loads', t:new Date('2026-04-10T19:30:00Z'), type:'milestone' },
-  { id:'splash',   label:'Splashdown',            detail:'Orion splashes down off San Diego · USS John P. Murtha recovery', t:new Date('2026-04-10T20:07:00Z'), type:'milestone' },
+  { id:'launch',   label:'Launch',               detail:'SLS lifts off from LC-39B, Kennedy Space Center',          t:1743547200000, type:'milestone' },
+  { id:'tli',      label:'Trans-Lunar Injection', detail:'ICPS fires — Orion escapes Earth orbit toward the Moon',   t:1743558000000, type:'maneuver'  },
+  { id:'prox',     label:'Proximity Operations',  detail:'Manual spacecraft handling + proximity ops flight test',   t:1743638400000, type:'science'   },
+  { id:'record',   label:'Distance Record ★',     detail:'252,760 mi from Earth — farthest humans have ever traveled', t:1744030560000, type:'milestone' },
+  { id:'approach', label:'Closest Moon Approach', detail:'Orion passes ~4,067 mi from lunar surface at 60,863 mph',  t:1744057560000, type:'milestone' },
+  { id:'eclipse',  label:'Solar Eclipse',         detail:'Moon eclipses Sun — crew observes solar corona ~54 min',   t:1744058100000, type:'science'   },
+  { id:'blackout', label:'Comms Blackout',        detail:'~40 min behind the Moon — Deep Space Network loses signal', t:1744059600000, type:'comms'     },
+  { id:'return',   label:'Begin Return to Earth', detail:'Orion completes flyby and heads home',                     t:1744062000000, type:'milestone' },
+  { id:'mcc1',     label:'Return Burn MCC-R1',    detail:'First return trajectory correction burn',                  t:1744153380000, type:'maneuver'  },
+  { id:'mcc2',     label:'Return Burn MCC-R2',    detail:'Second return trajectory correction burn',                 t:1744181600000, type:'maneuver'  },
+  { id:'mcc3',     label:'Return Burn MCC-R3',    detail:'Final return trajectory correction burn',                  t:1744290000000, type:'maneuver'  },
+  { id:'reentry',  label:'Reentry',               detail:'Skip reentry at 25,000 mph — peak heat shield loads',     t:1744317000000, type:'milestone' },
+  { id:'splash',   label:'Splashdown',            detail:'Orion splashes down off San Diego · USS John P. Murtha recovery', t:1744322820000, type:'milestone' },
 ];
 
 const TYPE_COLOR: Record<string,string> = {
@@ -24,23 +24,45 @@ const TYPE_COLOR: Record<string,string> = {
 };
 
 function getStatus(i: number, now: number) {
-  const tMs   = EVENTS[i].t.getTime();
-  const nextMs = EVENTS[i+1]?.t.getTime() ?? tMs + 7200000;
+  const tMs   = EVENTS[i].t;
+  const nextMs = EVENTS[i+1]?.t ?? tMs + 7_200_000;
   if (now > nextMs) return 'done';
   if (now >= tMs)   return 'active';
   return 'upcoming';
 }
+
+// Active glow keyframes injected once
+const GLOW_CSS = `
+@keyframes activeGlow {
+  0%,100% { box-shadow: 0 0 6px var(--accent-hi), 0 0 12px rgba(91,163,245,0.4); }
+  50%      { box-shadow: 0 0 14px var(--accent-hi), 0 0 28px rgba(91,163,245,0.7); }
+}
+@keyframes rowPulse {
+  0%,100% { background: rgba(45,125,210,0.06); }
+  50%      { background: rgba(45,125,210,0.12); }
+}
+`;
 
 export default function Timeline() {
   const [now,  setNow]  = useState(Date.now());
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 15000);
+    // Inject glow CSS once
+    if (!document.getElementById('tl-glow-css')) {
+      const s = document.createElement('style');
+      s.id = 'tl-glow-css';
+      s.textContent = GLOW_CSS;
+      document.head.appendChild(s);
+    }
+    const id = setInterval(() => setNow(Date.now()), 10000);
     return () => clearInterval(id);
   }, []);
 
   const doneCount = EVENTS.filter((_,i) => getStatus(i,now) === 'done').length;
+
+  // Reversed: current/upcoming at top, done at bottom
+  const displayEvents = [...EVENTS].reverse();
 
   return (
     <div className="card anim-up d3">
@@ -49,16 +71,18 @@ export default function Timeline() {
           <span className="eyebrow" style={{ color:'#fff', fontSize:10, letterSpacing:'0.18em' }}>Mission Timeline</span>
           <span className="badge badge-blue">{doneCount} / {EVENTS.length} complete</span>
         </div>
-        <svg className={`accordion-chevron${open?' open':''}`} viewBox="0 0 24 24" strokeWidth="2"><path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <svg className={`accordion-chevron${open?' open':''}`} viewBox="0 0 24 24" strokeWidth="2" fill="none" stroke="currentColor">
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </button>
 
       {open && (
         <div style={{ padding:'0 18px 16px' }}>
           <div className="rule" style={{ marginBottom:12 }} />
 
-          {/* legend */}
-          <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:12 }}>
-            {Object.entries(TYPE_COLOR).map(([type,color]) => (
+          {/* Legend */}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:14 }}>
+            {Object.entries(TYPE_COLOR).map(([type, color]) => (
               <div key={type} style={{ display:'flex', alignItems:'center', gap:5 }}>
                 <div style={{ width:6, height:6, borderRadius:'50%', background:color, flexShrink:0 }} />
                 <span className="eyebrow" style={{ color, fontSize:8 }}>{type}</span>
@@ -66,32 +90,56 @@ export default function Timeline() {
             ))}
           </div>
 
-          <div style={{ position:'relative', maxHeight:400, overflowY:'auto', paddingRight:2 }}>
-            {/* vertical line */}
+          {/* Scroll container */}
+          <div style={{ position:'relative', maxHeight:420, overflowY:'auto', paddingRight:2 }}>
+            {/* Vertical line */}
             <div style={{ position:'absolute', left:4, top:6, bottom:6, width:1, background:'var(--border)' }} />
 
-            {EVENTS.map((ev,i) => {
-              const s     = getStatus(i, now);
-              const color = TYPE_COLOR[ev.type];
+            {displayEvents.map((ev) => {
+              const origIdx = EVENTS.findIndex(e => e.id === ev.id);
+              const s       = getStatus(origIdx, now);
+              const color   = TYPE_COLOR[ev.type];
+              const isActive = s === 'active';
+
               return (
                 <div key={ev.id}
                      style={{
-                       display:'flex', gap:14, padding:'8px 8px 8px',
-                       borderRadius:4, marginLeft:-2,
-                       borderLeft:`2px solid ${s==='active' ? color : 'transparent'}`,
-                       background: s==='active' ? 'rgba(45,125,210,0.06)' : 'transparent',
+                       display:'flex', gap:14,
+                       padding:'8px 8px',
+                       borderRadius:4,
+                       marginLeft:-2,
+                       borderLeft:`2px solid ${isActive ? color : 'transparent'}`,
+                       animation: isActive ? 'rowPulse 2.5s ease-in-out infinite' : 'none',
+                       background: isActive ? 'rgba(45,125,210,0.06)' : 'transparent',
+                       marginBottom:2,
                      }}>
-                  <div className={`tl-node ${s==='done'?'tl-done':s==='active'?'tl-active':'tl-upcoming'}`} style={{ marginLeft:2 }} />
+                  {/* Node */}
+                  <div style={{ paddingLeft:2, paddingTop:3, flexShrink:0 }}>
+                    <div style={{
+                      width:10, height:10, borderRadius:'50%', border:'2px solid',
+                      borderColor: s==='done' ? 'var(--green)' : isActive ? 'var(--accent-hi)' : 'rgba(107,131,166,0.4)',
+                      background:  s==='done' ? 'rgba(16,185,129,0.3)' : isActive ? 'var(--accent)' : 'transparent',
+                      animation:   isActive ? 'activeGlow 2s ease-in-out infinite' : 'none',
+                    }} />
+                  </div>
+
                   <div style={{ flex:1 }}>
                     <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginBottom:2 }}>
-                      <span className="f-display" style={{ fontSize:11, fontWeight:700, color: s==='upcoming' ? 'var(--text-dim)' : '#fff', letterSpacing:'0.04em' }}>
+                      <span className="f-display" style={{
+                        fontSize:11, fontWeight:700, letterSpacing:'0.04em',
+                        color: s==='upcoming' ? 'var(--text-dim)' : '#fff',
+                      }}>
                         {ev.label}
                       </span>
                       {s==='done'   && <span className="eyebrow" style={{ color:'var(--green)', fontSize:8 }}>✓</span>}
-                      {s==='active' && <span className="badge badge-blue" style={{ fontSize:8, padding:'1px 6px' }}>NOW</span>}
+                      {isActive && (
+                        <span className="badge badge-blue" style={{ fontSize:8, padding:'1px 6px', animation:'rowPulse 2.5s ease-in-out infinite' }}>
+                          ● NOW
+                        </span>
+                      )}
                     </div>
-                    <div className="eyebrow" style={{ fontSize:8, marginBottom: s!=='upcoming'?4:0 }}>
-                      {ev.t.toUTCString().slice(5,16)} UTC · MET+{((ev.t.getTime()-LAUNCH)/3600000).toFixed(1)}h
+                    <div className="eyebrow" style={{ fontSize:8, marginBottom: s!=='upcoming' ? 3 : 0, color:'var(--text-dim)' }}>
+                      {new Date(ev.t).toUTCString().slice(5,16)} UTC · MET+{((ev.t - LAUNCH_MS)/3_600_000).toFixed(1)}h
                     </div>
                     {s !== 'upcoming' && (
                       <div style={{ fontSize:11, color:'var(--text-dim)', lineHeight:1.5 }}>{ev.detail}</div>

@@ -1,33 +1,32 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-const LAUNCH = new Date('2026-04-01T22:35:00Z').getTime();
-const SPLASH = new Date('2026-04-10T20:07:00Z').getTime();
-const TOTAL  = SPLASH - LAUNCH;
+const LAUNCH_MS = 1743547200000; // 2026-04-01T22:35:00Z exact ms
+const SPLASH_MS = 1744322820000; // 2026-04-10T20:07:00Z exact ms  
+const TOTAL_MS  = SPLASH_MS - LAUNCH_MS;
 
-const PHASE_MAP = [
+const PHASES: [number, number, string][] = [
   [0,     3,    'Earth Orbit'],
   [3,     117,  'Translunar Coast'],
   [117,   123,  'Lunar Flyby ✓'],
   [123,   215,  'Return to Earth'],
   [215,   220,  'Reentry'],
-] as const;
-
-function getPhase(met_h: number) {
-  for (const [a, b, label] of PHASE_MAP) if (met_h >= a && met_h < b) return label;
-  return met_h >= 220 ? 'Splashdown ✓' : 'Pre-Launch';
+];
+function getPhase(h: number) {
+  for (const [a, b, l] of PHASES) if (h >= a && h < b) return l;
+  return h >= 220 ? 'Splashdown ✓' : 'Pre-Launch';
 }
 
 export default function HeroStrip() {
   const [state, setState] = useState({ d:'--', h:'--', m:'--', s:'--', pct:0, phase:'—' });
 
   useEffect(() => {
-    const tick = () => {
+    function tick() {
       const now  = Date.now();
-      const rem  = Math.max(0, SPLASH - now);
+      const rem  = Math.max(0, SPLASH_MS - now);
       const sec  = Math.floor(rem / 1000);
-      const pct  = Math.min(100, Math.max(0, ((now - LAUNCH) / TOTAL) * 100));
-      const met_h = (now - LAUNCH) / 3600000;
+      const pct  = Math.min(100, Math.max(0, ((now - LAUNCH_MS) / TOTAL_MS) * 100));
+      const met_h = (now - LAUNCH_MS) / 3_600_000;
       setState({
         d: String(Math.floor(sec / 86400)).padStart(2,'0'),
         h: String(Math.floor((sec % 86400) / 3600)).padStart(2,'0'),
@@ -36,7 +35,7 @@ export default function HeroStrip() {
         pct,
         phase: getPhase(met_h),
       });
-    };
+    }
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -51,15 +50,12 @@ export default function HeroStrip() {
 
   return (
     <div className="card card-bracket anim-up d1"
-         style={{ padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
-      {/* right glow */}
+         style={{ padding:'28px 24px', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', right:0, top:0, bottom:0, width:'45%',
         background:'radial-gradient(ellipse at right center,rgba(45,125,210,0.07) 0%,transparent 70%)',
         pointerEvents:'none' }} />
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
-
-        {/* Left text */}
         <div style={{ flex:1, minWidth:220 }}>
           <div className="eyebrow" style={{ marginBottom:6 }}>First crewed lunar flyby since Apollo 17 · 1972</div>
           <div className="f-display" style={{ fontWeight:900, fontSize:'clamp(18px,2.5vw,26px)', color:'#fff', marginBottom:4 }}>
@@ -68,8 +64,6 @@ export default function HeroStrip() {
           <div className="eyebrow" style={{ color:'var(--text-mid)' }}>
             Pacific Ocean · Off San Diego · Apr 10 2026 · ~20:07 UTC
           </div>
-
-          {/* Progress */}
           <div style={{ marginTop:18 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
               <span className="eyebrow" style={{ color:'var(--green)', fontSize:8 }}>▲ Launch Apr 1</span>
@@ -85,7 +79,6 @@ export default function HeroStrip() {
           </div>
         </div>
 
-        {/* Countdown digits */}
         <div style={{ display:'flex', alignItems:'flex-end', gap:6, flexShrink:0 }}>
           {units.map((u, i) => (
             <div key={i} style={{ display:'flex', alignItems:'flex-end', gap:6 }}>
@@ -99,13 +92,10 @@ export default function HeroStrip() {
                 <div className="num-xl" style={{ color:'var(--accent-hi)' }}>{u.val}</div>
                 <div className="eyebrow" style={{ marginTop:4 }}>{u.label}</div>
               </div>
-              {i < 3 && (
-                <div className="f-mono" style={{ fontSize:26, fontWeight:300, color:'rgba(91,163,245,0.25)', marginBottom:18 }}>:</div>
-              )}
+              {i < 3 && <div className="f-mono" style={{ fontSize:26, fontWeight:300, color:'rgba(91,163,245,0.25)', marginBottom:18 }}>:</div>}
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );
