@@ -1,54 +1,54 @@
-# 🚀 Artemis II Live Tracker
+# Artemis II Live Tracker
 
-Real-time tracker for NASA's Artemis II crewed lunar flyby mission — built by [KJR Labs](https://kjrlabs.in).
-
-**Mission:** April 1–10, 2026 · Orion "Integrity" · First crewed deep-space mission since Apollo 17 (1972)
+Real-time tracker for NASA's Artemis II crewed lunar flyby mission. Built by [KJR Labs](https://kjrlabs.in).
 
 ## Features
 
-- **Live Telemetry** — Distance from Earth/Moon, spacecraft speed, G-force (via NASA AROW relay)
-- **Splashdown Countdown** — Animated countdown with mission progress bar
-- **Mission Timeline** — 15 events with live complete/active/upcoming states
-- **Crew Profiles** — Wiseman, Glover, Koch, Hansen
-- **NASA Live TV** — Embedded YouTube stream
-- **DSN Status** — Which dish is tracking Orion right now
-- **Starfield Background** — Animated canvas star field
+- **Live Telemetry** — Distance from Earth/Moon, speed, G-force via NASA AROW relay (artemis.cdnspace.ca) with physics model fallback
+- **Splashdown Countdown** — Animated countdown to April 10, 2026 with mission progress bar
+- **Mission Timeline** — 15 events from launch to splashdown with live complete/active/upcoming states
+- **Crew Profiles** — Wiseman, Glover, Koch, Hansen with mission bios
+- **NASA Live Stream** — Embedded NASA YouTube live coverage
+- **DSN Status** — Which dish is currently tracking Orion (community API + NASA XML fallback)
+- **Animated Starfield** — Canvas-rendered twinkling stars
 
 ## Data Sources
 
-| Data | Source | Update Rate |
-|---|---|---|
-| Orbital telemetry | `artemis.cdnspace.ca/api/orbit` (JPL Horizons relay) | 5 min |
-| DSN tracking | `artemis.cdnspace.ca/api/dsn` → `eyes.nasa.gov/dsn/data/dsn.xml` | 10s / 60s |
-| NASA live stream | YouTube embed | Live |
+| Data | Source | Refresh |
+|------|--------|---------|
+| Distance, speed, altitude | artemis.cdnspace.ca/api/orbit (JPL Horizons relay) | 30s |
+| DSN tracking | artemis.cdnspace.ca/api/dsn → eyes.nasa.gov/dsn/data/dsn.xml | 30s |
+| NASA Live stream | YouTube embed (NASA official) | Live |
+| Timeline / Crew | Hardcoded from NASA press kit | Static |
 
-If live APIs are unreachable, the tracker falls back to a physics model computed from known trajectory data points.
+## Deploy to Vercel
 
-## Tech Stack
+1. Fork or clone this repo
+2. Go to [vercel.com](https://vercel.com) → New Project → Import from GitHub
+3. Select `KshitijKoranne/ArtemisII`
+4. Click Deploy — no env vars needed
 
-- **Next.js 15** (App Router) + TypeScript
-- **Tailwind CSS**
-- **Vercel Edge Functions** (CORS proxy for NASA APIs)
-- Fonts: Orbitron · Space Mono · DM Sans
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/KshitijKoranne/ArtemisII)
 
-## Deploy on Vercel
+## Run Locally
 
 ```bash
 npm install
-npm run dev        # local dev
-vercel --prod      # deploy
+npm run dev
 ```
 
-Or connect the GitHub repo directly to Vercel — zero config needed.
+Open [http://localhost:3000](http://localhost:3000)
 
-## Credits
+## Stack
 
-- Orbital data: [artemis.cdnspace.ca](https://artemis.cdnspace.ca) community API
-- NASA AROW: [NASA Artemis Real-time Orbit Website](https://www.nasa.gov/missions/artemis/artemis-2/track-nasas-artemis-ii-mission-in-real-time/)
-- DSN fallback: [NASA DSN Now](https://eyes.nasa.gov/dsn/dsn.html)
+- Next.js 16 (App Router) + TypeScript
+- Tailwind CSS
+- Vercel Edge Functions (API proxy for CORS)
+- Google Fonts: Orbitron + Space Mono + DM Sans
 
-*Not affiliated with NASA. Fan project for educational purposes.*
+## Disclaimer
+
+Not affiliated with NASA. Fan project for educational purposes. Data from NASA JPL Horizons & community feeds.
 
 ---
-
-Built by [@kshitijkoranne](https://twitter.com/kshitijkoranne) · [KJR Labs](https://kjrlabs.in) · [Buy me a coffee](https://buymeacoffee.com/kshitijkorz)
+Built by [KJR Labs](https://kjrlabs.in) · [@kshitijkoranne](https://twitter.com/kshitijkoranne)
