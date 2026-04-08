@@ -2,42 +2,49 @@
 import { useState } from 'react';
 
 export default function LiveStream() {
-  const [expanded, setExpanded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [open,   setOpen]   = useState(false);
 
   return (
-    <div className="panel panel-corner fade-in-up delay-3 overflow-hidden">
-      <div className="flex items-center justify-between p-4 md:p-5 cursor-pointer"
-           onClick={() => setExpanded(!expanded)}>
+    <div className="card anim-up d3">
+      <button className="accordion-trigger p-5" onClick={() => setOpen(o => !o)}>
         <div className="flex items-center gap-3">
-          <div className="live-dot"></div>
-          <div>
-            <div className="label-tag mb-0.5">Live Coverage</div>
-            <div className="font-orbitron font-bold text-sm text-white">NASA LIVE TV</div>
-          </div>
+          <div className="live-ring"><div className="live-dot" /></div>
+          <span className="eyebrow text-white" style={{ fontSize:'11px', letterSpacing:'0.2em' }}>NASA Live TV</span>
+          <div className="badge badge-green">Streaming</div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="phase-badge" style={{ fontSize: '9px' }}>NASA YOUTUBE</div>
-          <div className="font-orbitron text-xs" style={{ color: '#4a9eff' }}>
-            {expanded ? '▲ COLLAPSE' : '▼ EXPAND'}
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="eyebrow" style={{ color:'var(--text-dim)' }}>{open ? 'Hide' : 'Watch'}</span>
+          <svg className={`accordion-chevron ${open ? 'open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
-      </div>
+      </button>
 
-      {expanded && (
-        <div className="px-4 pb-4 md:px-5 md:pb-5">
-          <div className="nasa-divider mb-4"></div>
-          <div className="relative w-full overflow-hidden rounded"
-               style={{ paddingBottom: '56.25%', border: '1px solid rgba(74,158,255,0.2)' }}>
+      {open && (
+        <div className="px-5 pb-5">
+          <div className="rule mb-4" />
+          <div className="relative rounded overflow-hidden"
+               style={{ paddingBottom:'56.25%', background:'#000', border:'1px solid var(--border)' }}>
+            {!loaded && (
+              <div className="absolute inset-0 flex items-center justify-center" style={{ background:'#000' }}>
+                <div className="text-center">
+                  <div className="live-ring mx-auto mb-3"><div className="live-dot" /></div>
+                  <div className="eyebrow">Loading NASA stream…</div>
+                </div>
+              </div>
+            )}
             <iframe
               className="absolute inset-0 w-full h-full"
               src="https://www.youtube.com/embed/21X5lGlDOfg?autoplay=1&mute=1"
-              title="NASA Live TV — Artemis II"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title="NASA Live — Artemis II"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
               allowFullScreen
+              onLoad={() => setLoaded(true)}
             />
           </div>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="label-tag" style={{ fontSize: '9px' }}>NASA Official YouTube · Muted by default · Click unmute for audio</div>
+          <div className="mt-3 eyebrow" style={{ color:'var(--text-dim)' }}>
+            NASA Official YouTube · Muted by default · Click the player to unmute
           </div>
         </div>
       )}
