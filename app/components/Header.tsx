@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import VisitorCounter from './VisitorCounter';
 
 // Launch: April 1, 2026 22:35:00 UTC
 const LAUNCH_TIME = new Date('2026-04-01T22:35:00Z').getTime();
@@ -44,9 +45,12 @@ export default function Header() {
           <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.25)' }}></div>
           <div className="label-tag">Artemis Program</div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="live-dot"></div>
-          <span className="label-tag" style={{ color: '#22c55e', letterSpacing: '0.15em' }}>MISSION ACTIVE</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="live-dot"></div>
+            <span className="label-tag" style={{ color: '#22c55e', letterSpacing: '0.15em' }}>MISSION ACTIVE</span>
+          </div>
+          <VisitorCounter />
         </div>
       </div>
 
