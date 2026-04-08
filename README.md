@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Artemis II Live Tracker
 
-## Getting Started
+Real-time tracker for NASA's Artemis II crewed lunar flyby mission — built by [KJR Labs](https://kjrlabs.in).
 
-First, run the development server:
+**Mission:** April 1–10, 2026 · Orion "Integrity" · First crewed deep-space mission since Apollo 17 (1972)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Live Telemetry** — Distance from Earth/Moon, spacecraft speed, G-force (via NASA AROW relay)
+- **Splashdown Countdown** — Animated countdown with mission progress bar
+- **Mission Timeline** — 15 events with live complete/active/upcoming states
+- **Crew Profiles** — Wiseman, Glover, Koch, Hansen
+- **NASA Live TV** — Embedded YouTube stream
+- **DSN Status** — Which dish is tracking Orion right now
+- **Starfield Background** — Animated canvas star field
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data Sources
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Data | Source | Update Rate |
+|---|---|---|
+| Orbital telemetry | `artemis.cdnspace.ca/api/orbit` (JPL Horizons relay) | 5 min |
+| DSN tracking | `artemis.cdnspace.ca/api/dsn` → `eyes.nasa.gov/dsn/data/dsn.xml` | 10s / 60s |
+| NASA live stream | YouTube embed | Live |
 
-## Learn More
+If live APIs are unreachable, the tracker falls back to a physics model computed from known trajectory data points.
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Next.js 15** (App Router) + TypeScript
+- **Tailwind CSS**
+- **Vercel Edge Functions** (CORS proxy for NASA APIs)
+- Fonts: Orbitron · Space Mono · DM Sans
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev        # local dev
+vercel --prod      # deploy
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Or connect the GitHub repo directly to Vercel — zero config needed.
+
+## Credits
+
+- Orbital data: [artemis.cdnspace.ca](https://artemis.cdnspace.ca) community API
+- NASA AROW: [NASA Artemis Real-time Orbit Website](https://www.nasa.gov/missions/artemis/artemis-2/track-nasas-artemis-ii-mission-in-real-time/)
+- DSN fallback: [NASA DSN Now](https://eyes.nasa.gov/dsn/dsn.html)
+
+*Not affiliated with NASA. Fan project for educational purposes.*
+
+---
+
+Built by [@kshitijkoranne](https://twitter.com/kshitijkoranne) · [KJR Labs](https://kjrlabs.in) · [Buy me a coffee](https://buymeacoffee.com/kshitijkorz)
